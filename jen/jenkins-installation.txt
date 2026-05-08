@@ -1,0 +1,87 @@
+ilogin to GCP
+Soin up an VM
+copy the VM ip
+ssh-keygen -t rsa -b 4096 -C "ubuntu"
+ Go to the GCP Console VM Instances page.
+Click on your VM name → Edit.
+Scroll to SSH Keys and click Add Item
+Paste the contents of your local ~/.ssh/id_rsa.pub file.
+
+to update the apt packages
+sudo apt full-upgrade -y
+
+sudo apt update
+sudo apt install vim -y
+
+if there is a host is a host key mismatch 
+ssh-keygen -f ~/.ssh/known_hosts -R 34.27.15.224
+
+vim ~/.ssh/config
+Host 34.27.15.224
+    User cloud2390ag
+    IdentityFile ~/.ssh/gcp_vm
+
+
+
+installing jenkins in ec2 instance
+
+sudo apt install openjdk-17-jdk -y
+
+sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+
+
+  echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/" | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+sudo apt update
+
+sudo apt install jenkins -y
+
+if any issue after installing 
+sudo systemctl daemon-reload
+
+to uninstall or emove java in command line
+dpkg -l | grep openjdk-17
+sudo apt purge openjdk-17-jre openjdk-17-jre-headless -y
+
+
+sudo apt update && sudo apt install -y wget apt-transport-https gnupg
+sudo wget -O /usr/share/keyrings/adoptium.asc https://adoptium.net
+echo "deb [signed-by=/usr/share/keyrings/adoptium.asc] https://adoptium.net bookworm main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+
+sudo apt update
+sudo apt install temurin-21-jre -y
+
+sudo wget -O /usr/share/keyrings/adoptium.asc \
+  https://adoptium.net
+
+  to remove broken repo
+  sudo rm /etc/apt/sources.list.d/adoptium.list
+
+  after installing jenkins, enable port 8080 in the firewall rule
+
+  Start jenkins
+
+  sudo systemctl enable jenkins
+  sudo systemctl start jenkins
+  sudo systemctl status jenkins
+
+  to fetch the jenkins password
+  sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+  to install docker
+  sudo apt update
+sudo apt install docker.io
+
+Grant Jenkins user and Ubuntu user permission to docker deamon.
+sudo su -
+usermod -aG docker jenkins
+usermod -aG docker ubuntu
+systemctl restart docker
+
+later on restart the jenkins by using the below
+htto:ip:8080/restart
+
+
