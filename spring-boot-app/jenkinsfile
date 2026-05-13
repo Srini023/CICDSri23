@@ -27,10 +27,10 @@ pipeline {
       }
     }
     stage('Build and Push Docker Image') {
-      agent { label 'docker-node' }   // run on node with Docker installed
       environment {
         DOCKER_IMAGE = "2823/Demo:${BUILD_NUMBER}"
-      }
+       REGISTRY_CREDENTIALS = credentials('docker-cred')
+     }
       steps {
         script {
           sh 'cd spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
