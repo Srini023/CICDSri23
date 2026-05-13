@@ -39,7 +39,6 @@ pipeline {
             dockerImage.push()
           }
         }
-      :%d
       }
     }
     stage('Update Deployment File') {
