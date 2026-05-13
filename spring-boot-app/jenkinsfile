@@ -2,19 +2,17 @@ pipeline {
   agent {
     docker {
       image 'maven:3.9.6-eclipse-temurin-17'
-      args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+      args '--user root'
     }
   }
   stages {
     stage('Checkout') {
       steps {
-        sh 'echo passed'
-        // git branch: 'main', url: 'https://github.com/Srini023/CICDSri23.git'
+        git branch: 'main', url: 'https://github.com/Srini023/CICDSri23.git'
       }
     }
     stage('Build and Test') {
       steps {
-        sh 'ls -ltr'
         sh 'cd spring-boot-app && mvn clean package'
       }
     }
@@ -29,7 +27,7 @@ pipeline {
       }
     }
     stage('Build and Push Docker Image') {
-      agent { label 'docker-node' }   // run on the node with Docker installed
+      agent { label 'docker-node' }   // run on node with Docker installed
       environment {
         DOCKER_IMAGE = "2823/Demo:${BUILD_NUMBER}"
       }
@@ -60,6 +58,11 @@ pipeline {
           '''
         }
       }
+    }
+  }
+  post {
+    always {
+      cleanWs()   // clean workspace after every run
     }
   }
 }
