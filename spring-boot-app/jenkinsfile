@@ -30,6 +30,7 @@ pipeline {
       }
     }
     stage('Build and Push Docker Image') {
+      agent { label 'docker-node' } // runs on the node with Docker installed
       environment {
         DOCKER_IMAGE = "2823/Demo:${BUILD_NUMBER}"
         // DOCKERFILE_LOCATION = "spring-boot-app/Dockerfile"
