@@ -80,15 +80,10 @@ pipeline {
                     sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" springbootappmanifests/deployment.yml
                     git add springbootappmanifests/deployment.yml
                     git commit -m "Update deployment image to version ${BUILD_NUMBER}" || echo "No changes to commit"
-                    git push https://${GH_USER}:${GH_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git HEAD:main
+                    git push https://${GH_USER}:${GH_TOKEN}@github.com/Srini023/${GIT_REPO_NAME}.git HEAD:main
                 """
             }
         }
-    }
-  }
-  post {
-    always {
-      cleanWs()
     }
   }
 }
