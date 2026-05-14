@@ -51,6 +51,8 @@ pipeline {
         }
         steps {
             sh 'apk add --no-cache git'
+	    // Restores the cloned Git repository folder workspace layout inside this specific container step
+            checkout scm
             withCredentials([string(credentialsId: 'GitHUB', variable: 'GITHUB_TOKEN')]) {
                 sh """
                     git config user.email "cena.bv29@gmail.com"
