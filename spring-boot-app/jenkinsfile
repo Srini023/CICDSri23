@@ -45,29 +45,35 @@ pipeline {
       }
     }
     stage('Update Deployment File') {
-        agent any // Temporarily drops out of the Maven container to access the host's native Git layout
         environment {
             GIT_REPO_NAME = "CICDSri23"
             GIT_USER_NAME = "Srini23"
         }
         steps {
-            checkout scm
-            withCredentials([string(credentialsId: 'GitHUB', variable: 'GITHUB_TOKEN')]) {
-              // Using single quotes prevents shell injection warnings and fixes durabletask execution bugs
-	        sh 'corepack enable || true' 
-                sh '''
+	    script {
+                // Using the Master/Agent Node context directly to completely bypass the Alpine container's musl crash bug
+	        withCredentials([string(credentialsId: 'GitHUB', variable: 'GITHUB_TOKEN')]) {
+                     // This node block executes directly on the bare-metal Jenkins server host
+		     node('built-in' || 'master') {
+                        // Cleans and checks out code natively on the host filesystem
+                        cleanWs()
+                        checkout scm
+                sh """
                     git config user.email "cena.bv29@gmail.com"
                     git config user.name "Srinivas BV"
                     sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" springbootappmanifests/deployment.yml
                     git add springbootappmanifests/deployment.yml
                     git commit -m "Update deployment image to version ${BUILD_NUMBER}"
                     git push https://${GITHUB_TOKEN}@://github.com{GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-                '''
+                """
             }
         }
     }
   }
 }
+
+
+
 
 
 
