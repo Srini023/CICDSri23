@@ -6,7 +6,7 @@ pipeline {
     stage('Checkout') {
       agent any
       steps {
-i        sh 'echo passed'
+         sh 'echo passed'
       }
     }
     
