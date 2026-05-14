@@ -54,7 +54,7 @@ pipeline {
                 // Using the Master/Agent Node context directly to completely bypass the Alpine container's musl crash bug
 	        withCredentials([string(credentialsId: 'GitHUB', variable: 'GITHUB_TOKEN')]) {
                      // This node block executes directly on the bare-metal Jenkins server host
-		     node('built-in' || 'master') {
+		     node('built-in') {
                         // Cleans and checks out code natively on the host filesystem
                         cleanWs()
                         checkout scm
@@ -64,7 +64,7 @@ pipeline {
                     sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" springbootappmanifests/deployment.yml
                     git add springbootappmanifests/deployment.yml
                     git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                    git push https://${GITHUB_TOKEN}@://github.com{GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                    git push https://${GITHUB_TOKEN}@://github.com${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                 """
             }
         }
@@ -73,6 +73,7 @@ pipeline {
 }
 }
 }
+
 
 
 
