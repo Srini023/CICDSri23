@@ -15,11 +15,11 @@ pipeline {
       agent {
         docker {
           image 'maven:3.9.6-eclipse-temurin-17-alpine'
-          args '--user root'
+          args '--user root -v /var/jenkins_home/.m2:/root/.m2'
         }
       }
       steps {
-        sh 'cd spring-boot-app && mvn clean package -DskipTests'
+        sh 'mvn -B -q clean package -DskipTests'
       }
     }
     
@@ -27,7 +27,7 @@ pipeline {
       agent {
         docker {
           image 'maven:3.9.6-eclipse-temurin-17-alpine'
-          args '--user root'
+          args '--user root -v /var/jenkins_home/.m2:/root/.m2'
         }
       }
       environment {
@@ -87,4 +87,5 @@ pipeline {
     }
   }
 }
+
 
