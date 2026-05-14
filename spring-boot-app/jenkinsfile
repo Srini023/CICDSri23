@@ -50,35 +50,28 @@ pipeline {
             GIT_USER_NAME = "Srini23"
         }
         steps {
-	    script {
-                // Using the Master/Agent Node context directly to completely bypass the Alpine container's musl crash bug
-	        withCredentials([string(credentialsId: 'GitHUB', variable: 'GITHUB_TOKEN')]) {
-                     // This node block executes directly on the bare-metal Jenkins server host
-		     node('built-in') {
-                        // Cleans and checks out code natively on the host filesystem
-                        cleanWs()
-                        checkout scm
-                sh """
-                    git config user.email "cena.bv29@gmail.com"
-                    git config user.name "Srinivas BV"
-                    sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" springbootappmanifests/deployment.yml
-                    git add springbootappmanifests/deployment.yml
-                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                    git push https://${GITHUB_TOKEN}@://github.com${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-                """
+            script {
+                // 1. Read and modify the deployment file using pure Groovy (No shell, no sed)
+                def manifestPath = "${workspace}/springbootappmanifests/deployment.yml"
+                def fileContent = readFile(manifestPath)
+                def updatedContent = fileContent.replaceAll("replaceImageTag", "${BUILD_NUMBER}")
+                writeFile(file: manifestPath, text: updatedContent)
+                echo "Successfully updated deployment image tag to version ${BUILD_NUMBER}"
+
+                // 2. Commit and push the updated file back to GitHub using Jenkins native Git step
+                withCredentials([usernamePassword(credentialsId: 'github-user-pass', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
+                    // This native plugin interaction completely avoids 'sh' execution inside Alpine
+                    git url: "https://${GH_TOKEN}@://github.com${GIT_USER_NAME}/${GIT_REPO_NAME}.git", branch: 'main'
+                    
+                    // Fallback to minimal git commit within script block execution context
+                    sh "git config user.email 'cena.bv29@gmail.com' && git config user.name 'Srinivas BV'"
+                    sh "git add springbootappmanifests/deployment.yml"
+                    sh "git commit -m 'Update deployment image to version ${BUILD_NUMBER}'"
+                    sh "git push https://${GH_TOKEN}@://github.com{GIT_USER_NAME}/${GIT_REPO_NAME}.git HEAD:main"
+                }
             }
         }
     }
   }
 }
-}
-}
-
-
-
-
-
-
-
-
 
