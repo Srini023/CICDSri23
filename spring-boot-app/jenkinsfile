@@ -1,18 +1,21 @@
 pipeline {
   agent {
     docker {
-      image 'maven:3.9.6-eclipse-temurin-17'
-      args '--user root -v /root/.m2:/root/.m2'
+      image 'abhishekf5/maven-abhishek-docker-agent:v1'
+      args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
     }
   }
   stages {
     stage('Checkout') {
       steps {
-        git branch: 'main', url: 'https://github.com/Srini023/CICDSri23.git'
+        sh 'echo passed'
+        //git branch: 'main', url: 'https://github.com/Srini023/CICDSri23.git'
       }
     }
     stage('Build and Test') {
       steps {
+        sh 'ls -ltr'
+        // build the project and create a JAR file
         sh 'cd spring-boot-app && mvn clean package'
       }
     }
@@ -29,45 +32,37 @@ pipeline {
     stage('Build and Push Docker Image') {
       environment {
         DOCKER_IMAGE = "2823/Demo:${BUILD_NUMBER}"
-       REGISTRY_CREDENTIALS = credentials('docker-cred')
-     }
+        // DOCKERFILE_LOCATION = "java-maven-sonar-argocd-helm-k8s/spring-boot-app/Dockerfile"
+        REGISTRY_CREDENTIALS = credentials('docker-cred')
+      }
       steps {
         script {
-          sh 'cd spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
-          def dockerImage = docker.image("${DOCKER_IMAGE}")
-          docker.withRegistry('https://index.docker.io/v1/', "docker-cred") {
-            dockerImage.push()
-          }
+            sh 'cd spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
+            def dockerImage = docker.image("${DOCKER_IMAGE}")
+            docker.withRegistry('https://index.docker.io/v1/', "docker-cred") {
+                dockerImage.push()
+            }
         }
       }
     }
     stage('Update Deployment File') {
-      environment {
-        GIT_REPO_NAME = "CICDSri23"
-        GIT_USER_NAME = "Srini23"
-      }
-      steps {
-        withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-          sh '''
-            git config user.email "cena.bv29z@gmail.com"
-            git config user.name "Srinivas BV"
-            sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" springbootappmanifests/deployment.yml
-            git add springbootappmanifests/deployment.yml
-            git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-            git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-          '''
+        environment {
+            GIT_REPO_NAME = "CICDSri23"
+            GIT_USER_NAME = "Srini23"
         }
-      }
-    }
-  }
-  post {
-    always {
-      cleanWs()   // clean workspace after every run
+        steps {
+            withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                sh '''
+                    git config user.email "cena.bv29@gmail.com"
+                    git config user.name "Srinivas BV"
+                    BUILD_NUMBER=${BUILD_NUMBER}
+                    sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" springbootappmanifests/deployment.yml
+                    git add springbootappmanifests/deployment.yml
+                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+                    git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                '''
+            }
+        }
     }
   }
 }
-
-
-
-
-
